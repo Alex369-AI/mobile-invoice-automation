@@ -10,6 +10,11 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
+// Ensure offer.html is served even if static lookup fails (explicit route)
+app.get('/offer.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'offer.html'));
+});
+
 // Simple endpoint: generate invoice PDF and return download URL
 app.post('/api/generate', (req, res) => {
   const data = req.body || {};
