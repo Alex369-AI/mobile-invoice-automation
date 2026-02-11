@@ -1,0 +1,6 @@
+node_modules/
+public/generated/*.pdf
+*.log
+*.db
+.DS_Store
+.env*
