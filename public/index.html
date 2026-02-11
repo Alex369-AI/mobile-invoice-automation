@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mobile Invoice Prototype</title>
+  <style>
+    body{font-family:system-ui,Arial;margin:0;padding:16px;background:#f7f7f8}
+    .card{background:#fff;padding:16px;border-radius:8px;max-width:640px;margin:12px auto}
+    label{display:block;margin-top:8px}
+    input,textarea{width:100%;padding:8px;margin-top:4px}
+    button{margin-top:12px;padding:10px 14px}
+    .items-row{display:flex;gap:8px}
+    .items-row input{flex:1}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Mobile Invoice — PoC</h2>
+    <label>Company name<input id="company" value="My Company"/></label>
+    <label>Client name<input id="client" value="Client"/></label>
+    <div id="items">
+      <div class="items-row">
+        <input placeholder="Description" class="desc" value="Service" />
+        <input placeholder="Qty" class="qty" value="1" />
+        <input placeholder="Price" class="price" value="50" />
+      </div>
+    </div>
+    <button id="add">Add item</button>
+    <button id="gen">Generate PDF</button>
+    <button id="pay">Simulate Payment</button>
+    <div id="result"></div>
+  </div>
+
+<script>
+  function collect(){
+    const company = document.getElementById('company').value;
+    const client = document.getElementById('client').value;
+    const items = [];
+    document.querySelectorAll('#items .items-row').forEach(row=>{
+      const desc = row.querySelector('.desc').value;
+      const qty = Number(row.querySelector('.qty').value)||0;
+      const price = Number(row.querySelector('.price').value)||0;
+      items.push({description:desc, qty, price});
+    });
+    return {companyName:company, clientName:client, items};
+  }
+  document.getElementById('add').onclick = ()=>{
+    const div = document.createElement('div'); div.className='items-row';
+    div.innerHTML = `<input class="desc" placeholder="Description"/><input class="qty" placeholder="Qty"/><input class="price" placeholder="Price"/>`;
+    document.getElementById('items').appendChild(div);
+  };
+  document.getElementById('gen').onclick = async ()=>{
+    const data = collect();
+    const res = await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)});
+    const j = await res.json();
+    if(j.ok){ document.getElementById('result').innerHTML = `<a href="${j.url}" target="_blank">Download PDF</a>`; }
+    else document.getElementById('result').textContent = 'Error';
+  };
+  document.getElementById('pay').onclick = async ()=>{
+    const res = await fetch('/api/payment/simulate',{method:'POST'});
+    const j = await res.json();
+    document.getElementById('result').textContent = `Payment status: ${j.status} (ref ${j.ref})`;
+  };
+</script>
+</body>
+</html>
